@@ -4,7 +4,7 @@
   "description": "A node package to retrieve fetch local or remote images in base64 encoding.",
   "main": "index.js",
   "scripts": {
-    "test": "npm test"
+    "test": "mocha --recursive ./test"
   },
   "repository": {
     "type": "git",
@@ -23,5 +23,32 @@
   "bugs": {
     "url": "https://github.com/gamell/fetch-base64/issues"
   },
-  "homepage": "https://github.com/gamell/fetch-base64#readme"
+  "homepage": "https://github.com/gamell/fetch-base64#readme",
+  "dependencies": {
+    "mime-types": "^2.1.11"
+  },
+  "devDependencies": {
+    "eslint": "^2.10.1",
+    "chai": "3.5.0",
+    "eslint-config-airbnb": "^8.0.0",
+    "eslint-plugin-import": "1.6.1",
+    "eslint-plugin-jsx-a11y": "^1.0.4",
+    "eslint-plugin-react": "^5.0.1",
+    "mocha": "2.4.5",
+    "sinon": "1.17.4"
+  },
+  "engines": {
+    "node": ">= 5.0.0"
+  },
+  "eslintConfig": {
+    "extends": "airbnb",
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "rules": {
+      "no-console": 0,
+      "strict": 0
+    }
+  }
 }
