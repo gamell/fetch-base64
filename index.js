@@ -1,10 +1,9 @@
 'use strict';
 
-const fs = require('fs');
-const url = require('url');
-const http = require('http');
 const mime = require('mime-types');
-const remoteRegex = /(https?:\/\/[^\s]+)/g;
+const pathResolve = require('path').resolve;
+const uriMatcher = require('./lib/uri-matcher.js');
+const fetch = require('./lib/fetch-tools.js');
 
 function getMimeType(path) {
   try {
@@ -15,53 +14,9 @@ function getMimeType(path) {
   }
 }
 
-function getRemoteBase64Image(uriParam) {
-  log.info(`embedding remote image ${uriParam}`);
-  const options = url.parse(uriParam);
-  options.method = 'GET'; // add http method
-  options.headers = { // Spoof user agent */
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
-  };
-
-  const promise = new Promise((resolve, reject) => {
-    const req = http.request(options, (res) => {
-      if (res.statusCode !== 200) {
-        reject(`Status code ${res.statusCode} returned when trying to fetch image`);
-        return false;
-      }
-      res.setEncoding('base64');
-      let body = '';
-      res.on('data', (chunk) => {
-        body += chunk;
-      });
-      res.on('end', () => {
-        resolve(body);
-        req.end();
-      });
-      res.resume();
-      return true;
-    }).on('error', (e) => {
-      reject(e);
-    });
-    req.end();
-  });
-  return promise;
-}
-
-function getLocalBase64Image(path) {
-  // TODO: remove log dependencies
-  log.info(`embedding local image ${path}`);
-  const promise = new Promise((resolve, reject) => {
-    fs.readFile(path, (err, data) => {
-      if (err) reject(err);
-      else resolve(data.toString('base64')); // buffer
-    });
-  });
-  return promise;
-}
-
 // promisify node-base64-image
-module.exports = function fetchImageBase64(uri) {
+module.exports = function fetchImageBase64(uri, bPath) {
+  const basePath = (typeof bPath === 'string') ? bPath : '';
   const promise = new Promise((resolve, reject) => {
     const mimeType = getMimeType(uri);
     if (!mimeType) {
@@ -69,10 +24,8 @@ module.exports = function fetchImageBase64(uri) {
       return false;
     }
     const prefix = `data:${mimeType};base64,`;
-    const fetchImage = uri.match(remoteRegex) ?
-      getRemoteBase64Image(uri) :
-      // TODO: fix util
-      getLocalBase64Image(util.getPathFromFileDir(uri));
+    const fetchImage = uriMatcher.isRemote(uri) ?
+      fetch.remote(uri) : fetch.local(pathResolve(basePath, uri));
     fetchImage.then(
       (base64) => resolve(prefix + base64),
       (reason) => reject(reason)
