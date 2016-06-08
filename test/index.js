@@ -5,16 +5,20 @@ const fetch = require('../index.js');
 const sinon = require('sinon');
 const fetchTools = require('../lib/fetch-tools.js');
 
+let sandbox;
+
 describe('Fetch Base64', () => {
   before(() => {
   });
   after(() => {
   });
   beforeEach(() => {
+    sandbox = sinon.sandbox.create();
   });
   afterEach(() => {
+    sandbox.restore();
   });
-  describe('fetchImageBase64()', () => {
+  describe('fetchBase64()', () => {
     it('should always return a promise', () => {
       assert(typeof fetch('non-existant-path').then === 'function');
       assert(typeof fetch().then === 'function');
@@ -24,51 +28,72 @@ describe('Fetch Base64', () => {
       fetch('/non-existant-path/non-image.txt').catch((e) => {
         assert.equal(e, 'The referenced file is not an image.');
         done();
-      });
+      }).catch((e) => done(e));
     });
 
-    it('should successfully return an existing local image', (done) => {
-      // call the 2nd argument passed to the readFile() function (callback) with given args
-      sinon.stub(fetchTools, 'local', () => Promise.resolve('png-data'));
-      fetch('/existing-path/image.png').then((res) => {
-        assert.equal(res, 'data:image/png;base64,png-data');
-        fetchTools.local.restore();
+    it('should call fetch.local for local images', (done) => {
+      const fetchRemoteStub = sandbox.stub(fetchTools, 'remote', () => Promise.resolve('gif-data'));
+      const fetchLocalStub = sandbox.stub(fetchTools, 'local', () => Promise.resolve('gif-data'));
+      fetch('/path/to/existing-image.gif').then((res) => {
+        assert.equal(res, 'data:image/gif;base64,gif-data');
+        assert(fetchLocalStub.calledOnce);
+        assert.equal(fetchRemoteStub.callCount, 0);
         done();
       }).catch((e) => done(e));
     });
 
-    // it('should return a rejected promise for a non-existent local image', (done) => {
-    //   // call the 2nd argument passed to the readFile() function (callback) with given args
-    //   sinon.stub(fs, 'readFile').callsArgWith(1, 'error', null);
-    //   const shouldNotBeCalled = sinon.spy();
-    //   fetch('/non-existing-path/image.png').then(shouldNotBeCalled, (error) => {
-    //     assert.equal(error, 'error');
-    //     assert.equal(shouldNotBeCalled.callCount, 0);
-    //     fs.readFile.restore();
-    //     done();
-    //   });
-    // });
+    it('should return a resolved promise for an existing local image', (done) => {
+      sandbox.stub(fetchTools, 'local', () => Promise.resolve('png-data'));
+      fetch('/existing-path/image.png').then((res) => {
+        assert.equal(res, 'data:image/png;base64,png-data');
+        done();
+      }).catch((e) => done(e));
+    });
 
-    // it('should successfully return an existing remote image', (done) => {
-    //   // call the 2nd argument passed to the readFile() function (callback) with given args
-    //   sinon.stub(http, 'request').callsArgWith(1, null, 'png-data');
-    //   fetch('/existing-path/image.png').then((res) => {
-    //     assert.equal(res, 'data:image/png;base64,png-data');
-    //     fs.readFile.restore();
-    //     done();
-    //   });
-    // });
-    //
-    // it('should return a rejected promise when any error occurs fetching a remote image', (done) => {
-    //   // call the 2nd argument passed to the readFile() function (callback) with given args
-    //   sinon.stub(fs, 'readFile').callsArgWith(1, 'error', null);
-    //   const shouldNotBeCalled = sinon.spy();
-    //   fetch('/non-existing-path/image.png').then(shouldNotBeCalled, (error) => {
-    //     assert.equal(error, 'error');
-    //     assert.equal(shouldNotBeCalled.callCount, 0);
-    //     fs.readFile.restore();
-    //     done();
-    //   });
-    // });
+    it('should return a rejected promise for a non-existent local image', (done) => {
+      sandbox.stub(fetchTools, 'local', () => Promise.reject('error'));
+      const shouldNotBeCalled = sinon.spy();
+      fetch('/non-existing-path/image.png').then(shouldNotBeCalled, (res) => {
+        assert.equal(res, 'error');
+        done();
+      }).catch((e) => done(e));
+    });
+
+    it('should concatenate the basePath if passed', (done) => {
+      const fetchLocalStub = sandbox.stub(fetchTools, 'local', () => Promise.resolve('gif-data'));
+      fetch('./project/existing-image.gif', '/base/path').then(() => {
+        assert(fetchLocalStub.calledOnce);
+        assert(fetchLocalStub.calledWith('/base/path/project/existing-image.gif'));
+        done();
+      }).catch((e) => done(e));
+    });
+
+    it('should call fetch.remote for remote images', (done) => {
+      const fetchRemoteStub = sandbox.stub(fetchTools, 'remote', () => Promise.resolve('gif-data'));
+      const fetchLocalStub = sandbox.stub(fetchTools, 'local', () => Promise.resolve('gif-data'));
+      fetch('http://test.com/existing-image.gif').then((res) => {
+        assert.equal(res, 'data:image/gif;base64,gif-data');
+        assert(fetchRemoteStub.calledOnce);
+        assert.equal(fetchLocalStub.callCount, 0);
+        done();
+      }).catch((e) => done(e));
+    });
+
+    it('should return a resolved promise for an existing remote image', (done) => {
+      sandbox.stub(fetchTools, 'remote', () => Promise.resolve('gif-data'));
+      fetch('http://test.com/existing-image.gif').then((res) => {
+        assert.equal(res, 'data:image/gif;base64,gif-data');
+        done();
+      }).catch((e) => done(e));
+    });
+
+    it('should return a rejected promise when there is an error fetching the remote image', (done) => {
+      sandbox.stub(fetchTools, 'remote', () => Promise.reject('error'));
+      const shouldNotBeCalled = sinon.spy();
+      fetch('http://test.com/non-existing-image.gif').then(shouldNotBeCalled, (res) => {
+        assert.equal(res, 'error');
+        done();
+      }).catch((e) => done(e));
+    });
   });
 });
