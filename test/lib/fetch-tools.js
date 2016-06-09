@@ -6,8 +6,25 @@ const sinon = require('sinon');
 const fs = require('fs');
 const http = require('http');
 const url = require('url');
+const PassThrough = require('stream').PassThrough;
 
 let sandbox;
+let request;
+let response;
+let httpRequestStub;
+
+function setupReqRes(statusCode) {
+  request = new PassThrough();
+  response = new PassThrough();
+  response.statusCode = statusCode;
+  response.write('data');
+  response.end();
+}
+
+function setupSuccessfulResponseMock(sb) {
+  setupReqRes(200);
+  httpRequestStub = sb.stub(http, 'request').callsArgWith(1, response).returns(request);
+}
 
 describe('Fetch Tools', () => {
   beforeEach(() => {
@@ -47,15 +64,31 @@ describe('Fetch Tools', () => {
       assert(typeof fetch.remote('something').then === 'function');
       assert(typeof fetch.remote().then === 'function');
     });
-    // need to use sinon fake server to mock http.request
-    // it('should call url.parse with correct url', (done) => {
-    //   const urlStub = sandbox.stub(url, 'parse', () => { return { prop1: 'value1' }; });
-    //   sandbox.stub(http, 'request', () => Promise.resolve('fake-data'));
-    //   fetch.remote('http://url.com/existing-image.gif').then(() => {
-    //     assert(urlStub.calledOnce);
-    //     assert(urlStub.calledWith('http://url.com/existing-image.gif'));
-    //     done();
-    //   }).catch((e) => done(e));
-    // });
+    it('should call url.parse with correct url', (done) => {
+      const urlStub = sandbox.stub(url, 'parse', () => ({ prop1: 'value1' }));
+      // setup http.requests stubs
+      setupSuccessfulResponseMock(sandbox);
+      fetch.remote('http://url.com/existing-image.gif').then(() => {
+        assert(urlStub.calledOnce);
+        assert(urlStub.calledWith('http://url.com/existing-image.gif'));
+        done();
+      }).catch((e) => done(e));
+    });
+    it('should call http.request with correct url and options', (done) => {
+      setupSuccessfulResponseMock(sandbox);
+      sandbox.stub(url, 'parse', () => ({}));
+      fetch.remote('http://url.com/existing-image.gif').then(() => {
+        const expectedOptions = {
+          headers: {},
+          method: 'GET',
+        };
+        assert(httpRequestStub.calledOnce);
+        sinon.assert.calledWith(httpRequestStub,
+          sinon.match(expectedOptions),
+          sinon.match.typeOf('function')
+        );
+        done();
+      }).catch((e) => done(e));
+    });
   });
 });
