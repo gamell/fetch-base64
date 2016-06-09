@@ -48,10 +48,10 @@ describe('Fetch Tools', () => {
       }).catch((e) => done(e));
     });
     it('should return a rejected promise when there is a fs error', (done) => {
-      const fsStub = sandbox.stub(fs, 'readFile').callsArgWith(1, 'error', null);
+      const fsStub = sandbox.stub(fs, 'readFile').callsArgWith(1, 'error message', null);
       const shouldNotBeCalled = sandbox.spy();
-      fetch.local('/path/to/existing-image.gif').then(shouldNotBeCalled, (res) => {
-        assert.equal(res, 'error');
+      fetch.local('/path/to/existing-image.gif').then(shouldNotBeCalled, (error) => {
+        assert.equal(error, 'Error reading local file: error message');
         assert(fsStub.calledOnce);
         assert.equal(shouldNotBeCalled.callCount, 0);
         assert(fsStub.calledWith('/path/to/existing-image.gif'));
@@ -89,6 +89,17 @@ describe('Fetch Tools', () => {
         );
         done();
       }).catch((e) => done(e));
+    });
+    describe('http.request', () => {
+      it('should return with expected error', (done) => {
+        setupReqRes(200);
+        sandbox.stub(url, 'parse', () => ({}));
+        const shouldNotBeCalled = sinon.spy();
+        fetch.remote('http://127.0.0.1/existing-image.gif').then(shouldNotBeCalled, (error) => {
+          assert.equal(error, 'HTTP Request error: Error: connect ECONNREFUSED 127.0.0.1:80');
+          done();
+        }).catch((e) => done(e));
+      });
     });
   });
 });
