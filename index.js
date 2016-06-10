@@ -1,7 +1,6 @@
 'use strict';
 
 const mime = require('mime-types');
-const pathResolve = require('path').resolve;
 const uriMatcher = require('./lib/uri-matcher.js');
 const fetch = require('./lib/fetch-tools.js');
 
@@ -14,23 +13,52 @@ function getMimeType(path) {
   }
 }
 
-// promisify node-base64-image
-module.exports = function fetchImageBase64(uri, bPath) {
-  const basePath = (typeof bPath === 'string') ? bPath : '';
+function checkMimeType(path) {
   const promise = new Promise((resolve, reject) => {
-    const mimeType = getMimeType(uri);
+    const mimeType = getMimeType(path);
     if (!mimeType) {
       reject('The referenced file is not an image.');
-      return false;
+    } else {
+      resolve(mimeType);
     }
-    const prefix = `data:${mimeType};base64,`;
-    const fetchImage = uriMatcher.isRemote(uri) ?
-      fetch.remote(uri) : fetch.local(pathResolve(basePath, uri));
-    fetchImage.then(
-      (base64) => resolve(prefix + base64),
-      (reason) => reject(reason)
-    );
-    return true;
   });
   return promise;
+}
+
+function calculatePrefix(mimeType, includeMimeType) {
+  if (includeMimeType) return `data:${mimeType};base64,`;
+  return '';
+}
+
+function auto(includeMimeType, ...paths) {
+  return checkMimeType(paths[paths.length - 1]).then(
+    (mimeType) => Promise.resolve(calculatePrefix(mimeType, includeMimeType))
+  ).then((prefix) => {
+    const fetchImage = uriMatcher.isRemote(paths) ?
+      fetch.remote(paths[0]) : fetch.local(...paths);
+    return fetchImage.then(
+      (base64) => prefix + base64
+    );
+  });
+}
+
+function local(includeMimeType, ...paths) {
+  return checkMimeType(paths[paths.length - 1]).then(
+    (mimeType) => Promise.resolve(calculatePrefix(mimeType, includeMimeType))
+  ).then(
+    (prefix) => fetch.local(...paths).then((base64) => prefix + base64)
+  );
+}
+//
+// function remote(includeMimeType, url) {
+//   return mimeTypeDecorator(mimeType, fetch.remote(url));
+// }
+
+// promisify node-base64-image
+module.exports = {
+  local,
+  // remote,
+  auto,
+  isRemote: uriMatcher.isRemote,
+  isLocal: () => !uriMatcher.isRemote(),
 };
