@@ -2,7 +2,8 @@
 
 const mime = require('mime-types');
 const uriMatcher = require('./lib/uri-matcher.js');
-const fetch = require('./lib/fetch-tools.js');
+const remote = require('./lib/fetch-remote.js');
+const local = require('./lib/fetch-local.js');
 
 function getMimeType(path) {
   try {
@@ -13,7 +14,8 @@ function getMimeType(path) {
   }
 }
 
-function checkMimeType(path) {
+function checkMimeType(paths) {
+  const path = (Array.isArray(paths)) ? paths[paths.length - 1] : paths;
   const promise = new Promise((resolve, reject) => {
     const mimeType = getMimeType(path);
     if (!mimeType) {
@@ -30,34 +32,36 @@ function calculatePrefix(mimeType, includeMimeType) {
   return '';
 }
 
+function fetchLocal(includeMimeType, ...paths) {
+  return checkMimeType(paths).then(
+    (mimeType) => calculatePrefix(mimeType, includeMimeType)
+  ).then(
+    (prefix) => local.fetch(...paths).then((base64) => prefix + base64)
+  );
+}
+
+function fetchRemote(includeMimeType, url) {
+  return checkMimeType(url).then(
+    (mimeType) => calculatePrefix(mimeType, includeMimeType)
+  ).then(
+    (prefix) => remote.fetch(url).then((base64) => prefix + base64)
+  );
+}
+
 function auto(includeMimeType, ...paths) {
-  return checkMimeType(paths[paths.length - 1]).then(
-    (mimeType) => Promise.resolve(calculatePrefix(mimeType, includeMimeType))
-  ).then((prefix) => {
-    const fetchImage = uriMatcher.isRemote(paths) ?
-      fetch.remote(paths[0]) : fetch.local(...paths);
-    return fetchImage.then(
-      (base64) => prefix + base64
-    );
+  return new Promise((resolve) => {
+    const path = paths[paths.length - 1];
+    if (uriMatcher.isRemote(path)) {
+      resolve(fetchRemote(includeMimeType, paths[0]));
+    } else {
+      resolve(fetchLocal(includeMimeType, ...paths));
+    }
   });
 }
 
-function local(includeMimeType, ...paths) {
-  return checkMimeType(paths[paths.length - 1]).then(
-    (mimeType) => Promise.resolve(calculatePrefix(mimeType, includeMimeType))
-  ).then(
-    (prefix) => fetch.local(...paths).then((base64) => prefix + base64)
-  );
-}
-//
-// function remote(includeMimeType, url) {
-//   return mimeTypeDecorator(mimeType, fetch.remote(url));
-// }
-
-// promisify node-base64-image
 module.exports = {
-  local,
-  // remote,
+  local: fetchLocal,
+  remote: fetchRemote,
   auto,
   isRemote: uriMatcher.isRemote,
   isLocal: () => !uriMatcher.isRemote(),
