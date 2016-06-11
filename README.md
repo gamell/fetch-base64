@@ -7,21 +7,35 @@ A node package to retrieve fetch local or remote images in base64 encoding. Usef
 
 # API
 
-## `fetch.local(path, includeMimeType, [basePathForRelative])`
+## `fetch.local(includeMimeType, ...paths)`
 
 Fetch local images and return them in base64 format.
 
 ### Params
 
-- `path` **String**: Local path. Can be absolute or relative (if relative, `basePathForRelative` is needed).
-  - `/some/local/path/image.jpg`
-  - `./relative/path/animation.gif`
-- `includeMimetype` **Boolean** (defaults to `true`): Should the result include the mimeType? Useful if embedding images into HTML. e.g. with mimeType: ``
-- `basePathForRelative` **String** (optional): If passed and the `path` param is detected as relative, the `basePathForRelative` will be used as the base path to resolve the relative. Useful if you want to fetch local images located in a relative path is relative to some directory (e.g. relative to the html file they are included in).
+- `includeMimeType` *Boolean*: Pass true if the result should include the mimeType for the image. Useful if embedding images into HTML. examples:
+  - true: `data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...`
+  - false: `iVBORw0KGgoAAAANSUhEUg...`
+- `paths` *String*: Single or multiple paths which will be combined using node's [`path.resolve()`](https://nodejs.org/docs/latest/api/path.html#path_path_resolve_from_to). You can pass multiple paths to resolve a relative path to an absolute path. Some examples of valid values for this parameter:
+  - `'/some/absolute/path/image.jpg'`
+  - `'/base/path/to/html', './img/animation.gif'`
+
+### Returns
+
+
 
 ## `fetch.remote(url, includeMimeType)`
 
 Fetch remote images and return them in base64 format.
+
+User Agent is spoofed to be same as Chrome's to avoid some restrictions, but image fetching still could fail for other reasons.
+
+### Params
+
+- `includeMimeType` *Boolean*: Pass true if the result should include the mimeType for the image. Useful if embedding images into HTML. examples:
+  - true: `data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...`
+  - false: `iVBORw0KGgoAAAANSUhEUg...`
+- `url` *String*: URL where the image resides. Note that node must have access to the given URL.
 
 ### Params
 
