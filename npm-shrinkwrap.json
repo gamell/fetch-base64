@@ -1,6 +1,6 @@
 {
   "name": "fetch-base64",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "dependencies": {
     "mime-db": {
       "version": "1.23.0",
