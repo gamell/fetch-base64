@@ -60,5 +60,5 @@ module.exports = {
   remote: fetchRemote,
   auto,
   isRemote: uriMatcher.isRemote,
-  isLocal: () => !uriMatcher.isRemote(),
+  isLocal: uriMatcher.isLocal,
 };

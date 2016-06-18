@@ -42,4 +42,10 @@ describe('Uri matcher', () => {
       assert.isFalse(uriMatcher.isRemote('~/local.jpg'));
     });
   });
+  describe('isLocal()', () => {
+    it('should return the opposite of isRemote() for the same path', () => {
+      assert.equal(uriMatcher.isRemote('nonRemote'), !uriMatcher.isLocal('nonRemote'));
+      assert.equal(!uriMatcher.isRemote('http://remote.com'), uriMatcher.isLocal('http://remote.com'));
+    });
+  });
 });
