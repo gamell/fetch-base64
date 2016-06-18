@@ -1,93 +1,135 @@
 'use strict';
 
 const assert = require('chai').assert;
-const fetch = require('../index.js');
+const index = require('../index.js');
+const remote = require('../lib/fetch-remote.js');
+const local = require('../lib/fetch-local.js');
 const sinon = require('sinon');
-const fetchTools = require('../lib/fetch-tools.js');
+const mime = require('mime-types');
 
 let sandbox;
 
-describe('Fetch Base64', () => {
+describe('index.js', () => {
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
   });
   afterEach(() => {
     sandbox.restore();
   });
-  it('should always return a promise', () => {
-    assert(typeof fetch('non-existant-path').then === 'function');
-    assert(typeof fetch().then === 'function');
-  });
 
-  it('it should throw an error when mime type is not an image', (done) => {
-    fetch('/non-existant-path/non-image.txt').catch((e) => {
-      assert.equal(e, 'The referenced file is not an image.');
-      done();
-    }).catch((e) => done(e));
+  describe('auto()', () => {
+    it('should always return a promise', () => {
+      assert(typeof index.auto('non-existant-path').then === 'function');
+      assert(typeof index.auto().then === 'function');
+      assert(typeof index.auto().then === 'function');
+    });
+    it('it should call local.fetch() to fetch local files', (done) => {
+      const fetchLocalStub = sandbox.stub(local, 'fetch', () => Promise.resolve('image-data'));
+      const shouldNotBeCalled = sandbox.spy(remote, 'fetch');
+      index.auto('/several/', '/paths/', '/image.gif').then((data) => {
+        assert.deepEqual(data, ['image-data', 'data:image/gif;base64,image-data']);
+        sinon.assert.calledOnce(fetchLocalStub);
+        sinon.assert.calledWith(fetchLocalStub, '/several/', '/paths/', '/image.gif');
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch((e) => done(e));
+    });
+    it('it should call remote.fetch() to fetch remote images', (done) => {
+      const fetchRemoteStub = sandbox.stub(remote, 'fetch', () => Promise.resolve('image-data'));
+      const shouldNotBeCalled = sandbox.spy(local, 'fetch');
+      index.auto('http://remote.com/image.jpg').then((data) => {
+        assert.deepEqual(data, ['image-data', 'data:image/jpeg;base64,image-data']);
+        sinon.assert.calledOnce(fetchRemoteStub);
+        sinon.assert.calledWith(fetchRemoteStub, 'http://remote.com/image.jpg');
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch((e) => done(e));
+    });
+    it('it should return a rejected promise if there is an exception parsing the mimeType', (done) => {
+      const shouldNotBeCalled = sandbox.spy(remote, 'fetch');
+      sandbox.stub(mime, 'lookup').throws('SomeError');
+      index.auto('/several/', '/paths/', '/image.gif').catch((e) => {
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        assert.equal(e, 'SomeError');
+        done();
+      }).catch((e) => done(e));
+    });
+    it('it should automatically assume local if several paths passed', (done) => {
+      const fetchLocalStub = sandbox.stub(local, 'fetch', () => Promise.reject('incorrect path'));
+      const shouldNotBeCalled = sandbox.spy(remote, 'fetch');
+      index.auto('http://thisisremote.com/', '/paths/', '/image.gif').catch((reason) => {
+        sinon.assert.calledOnce(fetchLocalStub);
+        sinon.assert.calledWith(fetchLocalStub, 'http://thisisremote.com/', '/paths/', '/image.gif');
+        assert.equal(reason, 'incorrect path');
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch((e) => done(e));
+    });
   });
-
-  it('should call fetch.local for local images', (done) => {
-    const fetchRemoteStub = sandbox.stub(fetchTools, 'remote', () => Promise.resolve('gif-data'));
-    const fetchLocalStub = sandbox.stub(fetchTools, 'local', () => Promise.resolve('gif-data'));
-    fetch('/path/to/existing-image.gif').then((res) => {
-      assert.equal(res, 'data:image/gif;base64,gif-data');
-      assert(fetchLocalStub.calledOnce);
-      assert.equal(fetchRemoteStub.callCount, 0);
-      done();
-    }).catch((e) => done(e));
+  describe('local()', () => {
+    it('should always return a promise', () => {
+      assert(typeof index.local('non-existant-path').then === 'function');
+      assert(typeof index.local().then === 'function');
+    });
+    it('should return a rejected promise if there is an issue retrieveing the image', (done) => {
+      const localFecthStub = sandbox.stub(
+        local, 'fetch', () => Promise.reject('error getting image')
+      );
+      index.local('path/to/existing-image.gif').catch((res) => {
+        assert.equal(res, 'error getting image');
+        assert(localFecthStub.calledOnce);
+        done();
+      }).catch((e) => done(e));
+    });
+    it('should call local.fetch() for local files', (done) => {
+      const localFetchStub = sandbox.stub(local, 'fetch', () => Promise.resolve('gif-data'));
+      const shouldNotBeCalled = sandbox.spy(remote, 'fetch');
+      index.local('/root/', '/path/to/existing-image.gif').then((res) => {
+        assert.deepEqual(res, ['gif-data', 'data:image/gif;base64,gif-data']);
+        assert(localFetchStub.calledOnce);
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch((e) => done(e));
+    });
+    it('should handle multiple paths correctly', (done) => {
+      const localFetchStub = sandbox.stub(local, 'fetch', () => Promise.resolve('gif-data'));
+      const shouldNotBeCalled = sandbox.spy(remote, 'fetch');
+      index.local('/root/', '/another/path/', '/path/to/existing-image.gif').then((res) => {
+        assert.deepEqual(res, ['gif-data', 'data:image/gif;base64,gif-data']);
+        assert(localFetchStub.calledOnce);
+        sinon.assert.calledWith(localFetchStub,
+          '/root/',
+          '/another/path/',
+          '/path/to/existing-image.gif'
+        );
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch((e) => done(e));
+    });
   });
-
-  it('should return a resolved promise for an existing local image', (done) => {
-    sandbox.stub(fetchTools, 'local', () => Promise.resolve('png-data'));
-    fetch('/existing-path/image.png').then((res) => {
-      assert.equal(res, 'data:image/png;base64,png-data');
-      done();
-    }).catch((e) => done(e));
-  });
-
-  it('should return a rejected promise for a non-existent local image', (done) => {
-    sandbox.stub(fetchTools, 'local', () => Promise.reject('error'));
-    const shouldNotBeCalled = sinon.spy();
-    fetch('/non-existing-path/image.png').then(shouldNotBeCalled, (res) => {
-      assert.equal(res, 'error');
-      done();
-    }).catch((e) => done(e));
-  });
-
-  it('should concatenate the basePath if passed', (done) => {
-    const fetchLocalStub = sandbox.stub(fetchTools, 'local', () => Promise.resolve('gif-data'));
-    fetch('./project/existing-image.gif', '/base/path').then(() => {
-      assert(fetchLocalStub.calledOnce);
-      assert(fetchLocalStub.calledWith('/base/path/project/existing-image.gif'));
-      done();
-    }).catch((e) => done(e));
-  });
-
-  it('should call fetch.remote for remote images', (done) => {
-    const fetchRemoteStub = sandbox.stub(fetchTools, 'remote', () => Promise.resolve('gif-data'));
-    const fetchLocalStub = sandbox.stub(fetchTools, 'local', () => Promise.resolve('gif-data'));
-    fetch('http://test.com/existing-image.gif').then((res) => {
-      assert.equal(res, 'data:image/gif;base64,gif-data');
-      assert(fetchRemoteStub.calledOnce);
-      assert.equal(fetchLocalStub.callCount, 0);
-      done();
-    }).catch((e) => done(e));
-  });
-
-  it('should return a resolved promise for an existing remote image', (done) => {
-    sandbox.stub(fetchTools, 'remote', () => Promise.resolve('gif-data'));
-    fetch('http://test.com/existing-image.gif').then((res) => {
-      assert.equal(res, 'data:image/gif;base64,gif-data');
-      done();
-    }).catch((e) => done(e));
-  });
-
-  it('should return a rejected promise when there is an error fetching the remote image', (done) => {
-    sandbox.stub(fetchTools, 'remote', () => Promise.reject('error'));
-    const shouldNotBeCalled = sinon.spy();
-    fetch('http://test.com/non-existing-image.gif').then(shouldNotBeCalled, (res) => {
-      assert.equal(res, 'error');
-      done();
-    }).catch((e) => done(e));
+  describe('remote()', () => {
+    it('should always return a promise', () => {
+      assert(typeof index.remote(true, 'non-existant-path').then === 'function');
+      assert(typeof index.remote(true).then === 'function');
+      assert(typeof index.remote().then === 'function');
+    });
+    it('should return a rejected promise if there is an issue retrieveing the file', (done) => {
+      const remoteFecthStub = sandbox.stub(remote, 'fetch', () => Promise.reject('error getting image'));
+      index.remote('https://domain.com/to/existing-image.gif').catch((reason) => {
+        assert.equal(reason, 'error getting image');
+        assert(remoteFecthStub.calledOnce);
+        done();
+      }).catch((e) => done(e));
+    });
+    it('should call remote.fetch() for remote files', (done) => {
+      const remoteFecthStub = sandbox.stub(remote, 'fetch', () => Promise.resolve('gif-data'));
+      const shouldNotBeCalled = sandbox.spy(local, 'fetch');
+      index.remote('https://deomain.com/to/existing-image.gif').then((res) => {
+        assert.deepEqual(res, ['gif-data', 'data:image/gif;base64,gif-data']);
+        assert(remoteFecthStub.calledOnce);
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch((e) => done(e));
+    });
   });
 });

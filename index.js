@@ -1,36 +1,64 @@
 'use strict';
 
 const mime = require('mime-types');
-const pathResolve = require('path').resolve;
 const uriMatcher = require('./lib/uri-matcher.js');
-const fetch = require('./lib/fetch-tools.js');
+const remote = require('./lib/fetch-remote.js');
+const local = require('./lib/fetch-local.js');
 
-function getMimeType(path) {
-  try {
-    const mimeType = mime.lookup(path);
-    return (mimeType.indexOf('image') > -1) ? mimeType : false;
-  } catch (e) { // if mimeType returns false
-    return false;
-  }
-}
-
-// promisify node-base64-image
-module.exports = function fetchImageBase64(uri, bPath) {
-  const basePath = (typeof bPath === 'string') ? bPath : '';
+function checkMimeType(paths) {
+  const path = (Array.isArray(paths)) ? paths[paths.length - 1] : paths;
   const promise = new Promise((resolve, reject) => {
-    const mimeType = getMimeType(uri);
-    if (!mimeType) {
-      reject('The referenced file is not an image.');
-      return false;
+    try {
+      resolve(mime.lookup(path));
+    } catch (e) {
+      reject(e);
     }
-    const prefix = `data:${mimeType};base64,`;
-    const fetchImage = uriMatcher.isRemote(uri) ?
-      fetch.remote(uri) : fetch.local(pathResolve(basePath, uri));
-    fetchImage.then(
-      (base64) => resolve(prefix + base64),
-      (reason) => reject(reason)
-    );
-    return true;
   });
   return promise;
+}
+
+function calculatePrefix(mimeType) {
+  return `data:${mimeType};base64,`;
+}
+
+function fetchLocal(...paths) {
+  return checkMimeType(paths).then(
+    (mimeType) => calculatePrefix(mimeType)
+  ).then(
+    (prefix) => local.fetch(...paths).then(
+      (base64) => [base64, prefix + base64]
+    )
+  );
+}
+
+function fetchRemote(url) {
+  return checkMimeType(url).then(
+    (mimeType) => calculatePrefix(mimeType)
+  ).then(
+    (prefix) => remote.fetch(url).then(
+      (base64) => [base64, prefix + base64]
+    )
+  );
+}
+
+function auto(...paths) {
+  return new Promise((resolve) => {
+    const path = paths[0];
+    // is > 1 path directly assume local as path concatenation is not supported for remote
+    if (paths.length > 1) {
+      resolve(fetchLocal(...paths));
+    } else if (uriMatcher.isRemote(path)) {
+      resolve(fetchRemote(path));
+    } else {
+      resolve(fetchLocal(path));
+    }
+  });
+}
+
+module.exports = {
+  local: fetchLocal,
+  remote: fetchRemote,
+  auto,
+  isRemote: uriMatcher.isRemote,
+  isLocal: () => !uriMatcher.isRemote(),
 };
