@@ -54,6 +54,17 @@ describe('index.js', () => {
         done();
       }).catch((e) => done(e));
     });
+    it('it should automatically assume local if several paths passed', (done) => {
+      const fetchLocalStub = sandbox.stub(local, 'fetch', () => Promise.reject('incorrect path'));
+      const shouldNotBeCalled = sandbox.spy(remote, 'fetch');
+      index.auto('http://thisisremote.com/', '/paths/', '/image.gif').catch((reason) => {
+        sinon.assert.calledOnce(fetchLocalStub);
+        sinon.assert.calledWith(fetchLocalStub, 'http://thisisremote.com/', '/paths/', '/image.gif');
+        assert.equal(reason, 'incorrect path');
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch((e) => done(e));
+    });
   });
   describe('local()', () => {
     it('should always return a promise', () => {

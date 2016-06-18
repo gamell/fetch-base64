@@ -43,11 +43,14 @@ function fetchRemote(url) {
 
 function auto(...paths) {
   return new Promise((resolve) => {
-    const path = paths[paths.length - 1];
-    if (uriMatcher.isRemote(path)) {
-      resolve(fetchRemote(paths[0]));
-    } else {
+    const path = paths[0];
+    // is > 1 path directly assume local as path concatenation is not supported for remote
+    if (paths.length > 1) {
       resolve(fetchLocal(...paths));
+    } else if (uriMatcher.isRemote(path)) {
+      resolve(fetchRemote(path));
+    } else {
+      resolve(fetchLocal(path));
     }
   });
 }
