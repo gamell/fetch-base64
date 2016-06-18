@@ -19,6 +19,15 @@ describe('Uri matcher', () => {
       assert.equal(typeof uriMatcher.isRemote('http://remote'), 'boolean');
     });
 
+    it('should throw an error if argument missing', () => {
+      // to test exceptions we need to wrap the function that will throw inside an another func. http://stackoverflow.com/questions/33756027/fail-a-test-with-chai-js
+      assert.throws(() => uriMatcher.isRemote(), 'Required parameter path missing');
+    });
+
+    it('should throw an error if wrong type', () => {
+      assert.throws(() => uriMatcher.isRemote(1), 'path.match is not a function');
+    });
+
     it('should return true for remote URIs', () => {
       assert.isTrue(uriMatcher.isRemote('http://doman.com/remote-image.gif'));
       assert.isTrue(uriMatcher.isRemote('http://doman.com/'));

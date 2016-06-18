@@ -4,7 +4,7 @@
   "description": "A node package to retrieve fetch local or remote images in base64 encoding.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --recursive ./test"
+    "test": "mocha --harmony --recursive ./test"
   },
   "repository": {
     "type": "git",
