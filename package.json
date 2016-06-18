@@ -4,7 +4,9 @@
   "description": "A node package to retrieve fetch local or remote images in base64 encoding.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --harmony --recursive ./test"
+    "test": "mocha --harmony --recursive ./test",
+    "publish-please": "publish-please",
+    "prepublish": "publish-please guard"
   },
   "repository": {
     "type": "git",
@@ -12,10 +14,13 @@
   },
   "keywords": [
     "base64",
-    "image",
     "html",
     "encoding",
     "picture",
+    "assets",
+    "static",
+    "files",
+    "embedding",
     "mime"
   ],
   "author": "Joan Gamell",
@@ -28,14 +33,15 @@
     "mime-types": "^2.1.11"
   },
   "devDependencies": {
+    "chai": "^3.5.0",
     "eslint": "^2.10.1",
-    "chai": "3.5.0",
-    "eslint-config-airbnb": "^8.0.0",
-    "eslint-plugin-import": "1.6.1",
+    "eslint-config-airbnb": "^9.0.1",
+    "eslint-plugin-import": "^1.8.1",
     "eslint-plugin-jsx-a11y": "^1.0.4",
-    "eslint-plugin-react": "^5.0.1",
-    "mocha": "2.4.5",
-    "sinon": "1.17.4"
+    "eslint-plugin-react": "^5.2.2",
+    "mocha": "^2.5.3",
+    "publish-please": "2.1.4",
+    "sinon": "^1.17.4"
   },
   "engines": {
     "node": ">= 5.0.0"
