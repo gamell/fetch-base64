@@ -25,7 +25,7 @@ function setupSuccessfulResponseMock(sb) {
   httpRequestStub = sb.stub(http, 'request').callsArgWith(1, response).returns(request);
 }
 
-describe('fetchRemote', () => {
+describe('fetchRemote (Unit)', () => {
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
   });
