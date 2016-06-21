@@ -54,13 +54,24 @@ describe('index.js', () => {
         done();
       }).catch((e) => done(e));
     });
-    it('it should automatically assume local if several paths passed', (done) => {
-      const fetchLocalStub = sandbox.stub(local, 'fetch', () => Promise.reject('incorrect path'));
+    it('it should call fetch.remote if first path passed is remote', (done) => {
+      const fetchRemoteStub = sandbox.stub(remote, 'fetch', () => Promise.resolve('image-data'));
+      const shouldNotBeCalled = sandbox.spy(local, 'fetch');
+      index.auto('http://thisisremote.com/', '/paths/', '/image.gif').then((data) => {
+        assert.equal(data[0], 'image-data');
+        sinon.assert.calledOnce(fetchRemoteStub);
+        sinon.assert.calledWith(fetchRemoteStub, 'http://thisisremote.com/', '/paths/', '/image.gif');
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch((e) => done(e));
+    });
+    it('it should call fetch.local if first path passed is local', (done) => {
+      const fetchLocalStub = sandbox.stub(local, 'fetch', () => Promise.resolve('image-data'));
       const shouldNotBeCalled = sandbox.spy(remote, 'fetch');
-      index.auto('http://thisisremote.com/', '/paths/', '/image.gif').catch((reason) => {
+      index.auto('/localPath/', '/paths/', '/image.gif').then((data) => {
+        assert.equal(data[0], 'image-data');
         sinon.assert.calledOnce(fetchLocalStub);
-        sinon.assert.calledWith(fetchLocalStub, 'http://thisisremote.com/', '/paths/', '/image.gif');
-        assert.equal(reason, 'incorrect path');
+        sinon.assert.calledWith(fetchLocalStub, '/localPath/', '/paths/', '/image.gif');
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
       }).catch((e) => done(e));
