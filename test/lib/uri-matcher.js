@@ -6,7 +6,7 @@ const sinon = require('sinon');
 
 let sandbox;
 
-describe('Uri matcher', () => {
+describe('Uri matcher (Unit)', () => {
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
   });

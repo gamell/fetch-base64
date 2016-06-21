@@ -7,7 +7,7 @@ const fs = require('fs');
 
 let sandbox;
 
-describe('fetchLocal', () => {
+describe('fetchLocal (Unit)', () => {
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
   });

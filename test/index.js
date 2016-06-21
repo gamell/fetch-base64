@@ -9,7 +9,7 @@ const mime = require('mime-types');
 
 let sandbox;
 
-describe('index.js', () => {
+describe('index.js (Unit)', () => {
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
   });
