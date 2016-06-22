@@ -1,7 +1,7 @@
 {
   "name": "fetch-base64",
   "version": "1.0.0",
-  "description": "A node package to retrieve fetch local or remote images in base64 encoding.",
+  "description": "A node package to retrieve fetch local or remote files in base64 encoding.",
   "main": "index.js",
   "scripts": {
     "test": "mocha --harmony --recursive ./test",
