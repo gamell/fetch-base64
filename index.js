@@ -31,11 +31,11 @@ function fetchLocal(...paths) {
   );
 }
 
-function fetchRemote(url) {
-  return checkMimeType(url).then(
+function fetchRemote(...paths) {
+  return checkMimeType(paths).then(
     (mimeType) => calculatePrefix(mimeType)
   ).then(
-    (prefix) => remote.fetch(url).then(
+    (prefix) => remote.fetch(...paths).then(
       (base64) => [base64, prefix + base64]
     )
   );
@@ -43,15 +43,9 @@ function fetchRemote(url) {
 
 function auto(...paths) {
   return new Promise((resolve) => {
-    const path = paths[0];
-    // is > 1 path directly assume local as path concatenation is not supported for remote
-    if (paths.length > 1) {
-      resolve(fetchLocal(...paths));
-    } else if (uriMatcher.isRemote(path)) {
-      resolve(fetchRemote(path));
-    } else {
-      resolve(fetchLocal(path));
-    }
+    resolve(
+      (uriMatcher.isRemote(paths[0])) ? fetchRemote(...paths) : fetchLocal(...paths)
+    );
   });
 }
 
