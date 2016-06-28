@@ -1,9 +1,14 @@
 # Fetch Base64
+
+[![Build Status](https://travis-ci.org/gamell/fetch-base64.svg?branch=master)](https://travis-ci.org/gamell/fetch-base64)
+
 A node package to retrieve fetch local or remote files in base64 encoding. Useful for inlining assets (images, web fonts, etc.) into HTML or CSS documents.
+
+Disclaimer: I've only used this for images so far, but there is no reason why it shouldn't work for any other kind of files.
 
 If you find a bug please report it [here](https://github.com/gamell/fetch-base64/issues).
 
-# TL;DR example
+# Usage
 
 ```js
 const fetch = require(fetch-base64);
@@ -40,41 +45,57 @@ Fetch local files and return a promise with the file in base64 format.
 
 ### Params
 
-- `...paths` *String(s)*: Single or multiple paths which will be combined using node's [`path.resolve()`](https://nodejs.org/docs/latest/api/path.html#path_path_resolve_from_to). You can pass multiple paths to resolve a relative path to an absolute path. Some examples of valid values for this parameter:
+- `...paths` `<string(s)>`: Single or multiple paths which will be combined using node's [`path.resolve()`](https://nodejs.org/docs/latest/api/path.html#path_path_resolve_from_to). You can pass multiple paths to resolve a relative path to an absolute path. Some examples of valid values for this parameter:
   - `'/some/absolute/path/image.jpg'`
   - `'/base/path/to/html', './img/animation.gif'`
 
 
 ## `fetch.remote(url)`
 
-Fetch remote files and return a promise with the file in base64 format.
+Fetch remote file in `url` and return a promise with the file in base64 format.
 
 User Agent is spoofed to be same as Chrome's to avoid some restrictions, but fetching could still fail for other reasons.
 
 ### Params
 
-- `url` *String*: URL where the image resides. Note that node must have access to the given URL.
+- `url` `<string>`: URL where the file resides. Note that node must have access to the given URL.
 
-## `fetch.auto(...paths)`
+## `fetch.remote(from, to)`
 
-This function will try to automatically detect the kind of path passed (`remote` or `local`) and invoke the correspondent function.
+Resolve url using node's [`url.resolve(from, to)`](https://nodejs.org/api/url.html#url_url_resolve_from_to), fetch remote file  and return a promise with the file in base64 format.
+
+User Agent is spoofed to be same as Chrome's to avoid some restrictions, but fetching could still fail for other reasons.
 
 ### Params
 
-- `...paths` *String(s)*: Accepts the same parameter as `fetch.local()`. If more than one  path is passed, `local` will be assumed as path concatenation is not supported for remote URLs right now. Some examples of valid values for this parameter:
-  - `'http://some.domain/file.png'`
-  - `'/base/path/to/html', './img/animation.gif'`
-- `basePathForRelative` **String** (optional): Only used for fetching **local images**. See `fetch.local` documentation above.
+- `from` `<string>`: The Base URL being resolved against.
+- `to` `<string>`: The HREF URL being resolved.
+
+See [`url.resolve()`](https://nodejs.org/api/url.html#url_url_resolve_from_to) for more information and examples.
+
+## `fetch.auto(...mixed)`
+
+This function will do the *best effort* to automatically detect the kind of path passed (`remote` or `local`) and invoke the correspondent function.
+
+It will use the `fetch.isRemote()` function to determine if a remote url or a local path has been passed **in the first parameter**.
+
+### Params
+
+- `...mixed` `<string(s)>`: Accepts the same parameters as `fetch.local(...paths)`, `fetch.remote(url)` or `fetch.remote(from, to)` - see above. Examples of valid calls:
+  - `fetch.auto('/base/path/to/html', './img/animation.gif');`
+  - `fetch.auto('http://some.domain/file.png');`
+  - `fetch.auto('http://some.domain/', 'file.png');`
+
 
 # Utility functions
 
 ## `fetch.isLocal(path)`
 
-Returns `true` if the passed path (String) is local. Returns `false` otherwise.
+Returns `true` if the passed path (`<string>`) is local. Returns `false` otherwise.
 
 ## `fetch.isRemote(path)`
 
-Returns `true` if the passed path (String) is remote. Returns `false` otherwise.
+Returns `true` if the passed path (`<string>`) is remote. Returns `false` otherwise.
 
 
 # Examples
@@ -89,12 +110,12 @@ const fetch = require('fetch-base64');
 
 ```js
 // will fetch image in /Users/bla/src/project/img/logo.jpg
-const doFetchLocal = fetch.local('./img/logo.jpg', '/Users/bla/src/project');
+const doFetchLocal = fetch.local('/Users/bla/src/project', './img/logo.jpg');
 doFetchLocal.then((data) => {
   console.log(`base64 image raw: ${data[0]}`);
 }, (reason) => {
   console.log(`Fetch Failed: ${reason}`)
-})
+});
 ```
 
 ## Remote
@@ -105,16 +126,34 @@ doFetchRemote.then((data) => {
   console.log(`base64 image with mimeType: ${data[1]}`);
 }, (reason) => {
   console.log(`Fetch Failed: ${reason}`)
-})
+});
+```
+
+```js
+const doFetchRemote2 = fetch.remote('https://somedomain.com', '/image.jpg');
+doFetchRemote.then((data) => {
+  console.log(`base64 image with mimeType: ${data[1]}`);
+}, (reason) => {
+  console.log(`Fetch Failed: ${reason}`)
+});
 ```
 
 ## Auto
 
 ```js
-const doFetch = fetch.auto('https://somedomain.com/image.jpg');
+const doFetchAuto = fetch.auto('https://somedomain.com/image.jpg');
 doFetch.then((data) => {
-  console.log(`base 64 image: ${data[0]}`);
+  console.log(`base64 image: ${data[0]}`);
 }, (reason) => {
   console.log(`Fetch Failed: ${reason}`)
-})
+});
+```
+
+```js
+const doFetchAuto2 = fetch.auto('/some/local/', '/path/', './image.jpg');
+doFetch.then((data) => {
+  console.log(`base64 image: ${data[0]}`);
+}, (reason) => {
+  console.log(`Fetch Failed: ${reason}`)
+});
 ```
