@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/gamell/fetch-base64.svg?branch=master)](https://travis-ci.org/gamell/fetch-base64)
 
-A node package to retrieve fetch local or remote files in base64 encoding. Useful for inlining assets (images, web fonts, etc.) into HTML or CSS documents.
+A node package to fetch local or remote files in base64 encoding. Useful for inlining assets (images, web fonts, etc.) into HTML or CSS documents.
 
 Disclaimer: I've only used this for images so far, but there is no reason why it shouldn't work for any other kind of files.
 
