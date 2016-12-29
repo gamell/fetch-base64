@@ -18,7 +18,7 @@ function checkMimeType(paths) {
 }
 
 function calculatePrefix(mimeType) {
-  return `data:${mimeType};base64,`;
+  return `data:${mimeType};charset=utf-8;base64,`;
 }
 
 function fetchLocal(...paths) {
