@@ -1,10 +1,12 @@
 {
   "name": "fetch-base64",
-  "version": "0.1.0",
-  "description": "A node package to retrieve fetch local or remote images in base64 encoding.",
+  "version": "1.0.0",
+  "description": "A node package to retrieve fetch local or remote files in base64 encoding.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --recursive ./test"
+    "test": "mocha --recursive ./test",
+    "publish-please": "publish-please",
+    "prepublish": "publish-please guard"
   },
   "repository": {
     "type": "git",
@@ -12,11 +14,16 @@
   },
   "keywords": [
     "base64",
-    "image",
     "html",
     "encoding",
     "picture",
-    "mime"
+    "assets",
+    "static",
+    "files",
+    "embedding",
+    "mime",
+    "inline",
+    "inlining"
   ],
   "author": "Joan Gamell",
   "license": "MIT",

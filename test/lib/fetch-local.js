@@ -9,7 +9,7 @@ let sandbox;
 
 function swallow() {}
 
-describe('fetchLocal', () => {
+describe('fetchLocal (Unit)', () => {
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
   });
