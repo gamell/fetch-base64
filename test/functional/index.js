@@ -35,8 +35,15 @@ describe('Functional test', () => {
         done();
       }).catch((e) => done(e));
     });
-    it('should fetch file with form, to URL', (done) => {
+    it('should fetch file with `form, to` style URL', (done) => {
       fetch.remote('http://gamell.io/', '/sprite.png').then((data) => {
+        assert.include(data[0], 'iVBORw0KGgoAAAANSUhEU');
+        assert.include(data[1], 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAC6');
+        done();
+      }).catch((e) => done(e));
+    });
+    it('should fetch file from https resource', (done) => {
+      fetch.remote('https://gamell.io/sprite.png').then((data) => {
         assert.include(data[0], 'iVBORw0KGgoAAAANSUhEU');
         assert.include(data[1], 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAC6');
         done();
@@ -59,6 +66,13 @@ describe('Functional test', () => {
     });
     it('should fetch remote file with form, to URL', (done) => {
       fetch.auto('http://gamell.io/', '/sprite.png').then((data) => {
+        assert.include(data[0], 'iVBORw0KGgoAAAANSUhEU');
+        assert.include(data[1], 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAC6');
+        done();
+      }).catch((e) => done(e));
+    });
+    it('should fetch file from https resource', (done) => {
+      fetch.auto('https://gamell.io/sprite.png').then((data) => {
         assert.include(data[0], 'iVBORw0KGgoAAAANSUhEU');
         assert.include(data[1], 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAC6');
         done();
