@@ -11,7 +11,7 @@ A node package to retrieve fetch local or remote images in base64 encoding. Usef
 
 Fetch local images and return them in base64 format.
 
-### Params
+### Params 
 
 - `includeMimeType` *Boolean*: Pass true if the result should include the mimeType for the image. Useful if embedding images into HTML. examples:
   - true: `data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...`
