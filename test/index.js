@@ -27,8 +27,8 @@ describe('index.js (Unit)', () => {
       assert(typeof auto2.then === 'function');
       Promise.all([auto1, auto2]).catch(swallow);
     });
-    it('it should throw an error when mime type is not an image', (done) => {
-      index.auto(true, '/non-existant-path/non-image.txt').catch((e) => {
+    it('it should return a rejected promise when mime type is not an image', (done) => {
+      index.auto('/non-existant-path/non-image.txt').catch((e) => {
         assert.equal(e, 'The referenced file is not an image.');
         done();
       });
@@ -98,7 +98,7 @@ describe('index.js (Unit)', () => {
     it('should return a rejected promise if there is an issue retrieveing the image', (done) => {
       const localFecthStub = sandbox.stub(local, 'fetch')
         .callsFake(() => Promise.reject('error getting image'));
-      index.local(true, 'path/to/existing-image.gif').catch((res) => {
+      index.local('path/to/existing-image.gif').catch((res) => {
         assert.equal(res, 'error getting image');
         assert(localFecthStub.calledOnce);
         done();

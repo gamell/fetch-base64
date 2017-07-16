@@ -42,7 +42,6 @@ function fetchRemote(...paths) {
 }
 
 function auto(...paths) {
-  const path = paths[paths.length - 1];
   try {
     return (uriMatcher.isRemote(paths[0])) ? fetchRemote(...paths) : fetchLocal(...paths)
   } catch (e) {
