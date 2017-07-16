@@ -4,7 +4,7 @@
   "description": "A node package to retrieve fetch local or remote files in base64 encoding.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --harmony --recursive ./test",
+    "test": "mocha --recursive ./test",
     "publish-please": "publish-please",
     "prepublish": "publish-please guard"
   },
@@ -32,21 +32,19 @@
   },
   "homepage": "https://github.com/gamell/fetch-base64#readme",
   "dependencies": {
-    "mime-types": "^2.1.11"
+    "mime-types": "^2.1.15"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "eslint": "^2.10.1",
-    "eslint-config-airbnb": "^9.0.1",
-    "eslint-plugin-import": "^1.8.1",
-    "eslint-plugin-jsx-a11y": "^1.0.4",
-    "eslint-plugin-react": "^5.2.2",
-    "mocha": "^2.5.3",
-    "publish-please": "2.1.4",
-    "sinon": "^1.17.4"
+    "chai": "^4.1.0",
+    "eslint": "^4.2.0",
+    "eslint-config-airbnb-base": "^11.2.0",
+    "eslint-plugin-import": "^2.7.0",
+    "mocha": "^3.4.2",
+    "publish-please": "^2.3.1",
+    "sinon": "^2.3.8"
   },
   "engines": {
-    "node": ">= 5.0.0"
+    "node": ">= 7.5.0"
   },
   "eslintConfig": {
     "extends": "airbnb",

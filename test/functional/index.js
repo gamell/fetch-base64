@@ -20,7 +20,7 @@ describe('Functional test', () => {
         done();
       }).catch((e) => done(e));
     });
-    it('should fail for unexistent file', (done) => {
+    it('should fail for nonexistent file', (done) => {
       fetch.local('/no.jpg').catch((reason) => {
         assert.equal(reason, 'Error reading local file: Error: ENOENT: no such file or directory, open \'/no.jpg\'');
         done();
@@ -35,14 +35,21 @@ describe('Functional test', () => {
         done();
       }).catch((e) => done(e));
     });
-    it('should fetch file with form, to URL', (done) => {
+    it('should fetch file with `form, to` style URL', (done) => {
       fetch.remote('http://gamell.io/', '/sprite.png').then((data) => {
         assert.include(data[0], 'iVBORw0KGgoAAAANSUhEU');
         assert.include(data[1], 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAC6');
         done();
       }).catch((e) => done(e));
     });
-    it('should fail for unexistent file', (done) => {
+    it('should fetch file from https resource', (done) => {
+      fetch.remote('https://gamell.io/sprite.png').then((data) => {
+        assert.include(data[0], 'iVBORw0KGgoAAAANSUhEU');
+        assert.include(data[1], 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAC6');
+        done();
+      }).catch((e) => done(e));
+    });
+    it('should fail for nonexistent file', (done) => {
       fetch.remote('http://gamell.io/ajndjdnfjsdn.jpg').catch((reason) => {
         assert.equal(reason, 'Status code 404 returned when trying to fetch file');
         done();
@@ -64,7 +71,14 @@ describe('Functional test', () => {
         done();
       }).catch((e) => done(e));
     });
-    it('should fail for unexistent file', (done) => {
+    it('should fetch file from https resource', (done) => {
+      fetch.auto('https://gamell.io/sprite.png').then((data) => {
+        assert.include(data[0], 'iVBORw0KGgoAAAANSUhEU');
+        assert.include(data[1], 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAC6');
+        done();
+      }).catch((e) => done(e));
+    });
+    it('should fail for nonexistent file', (done) => {
       fetch.auto('http://gamell.io/ajndjdnfjsdn.jpg').catch((reason) => {
         assert.equal(reason, 'Status code 404 returned when trying to fetch file');
         done();

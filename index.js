@@ -42,11 +42,11 @@ function fetchRemote(...paths) {
 }
 
 function auto(...paths) {
-  return new Promise((resolve) => {
-    resolve(
-      (uriMatcher.isRemote(paths[0])) ? fetchRemote(...paths) : fetchLocal(...paths)
-    );
-  });
+  try {
+    return (uriMatcher.isRemote(paths[0])) ? fetchRemote(...paths) : fetchLocal(...paths)
+  } catch (e) {
+    return Promise.reject(e);
+  }
 }
 
 module.exports = {
