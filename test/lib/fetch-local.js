@@ -43,4 +43,14 @@ describe('fetchLocal', () => {
       done();
     }).catch((e) => done(e));
   });
+  it('should return a rejected promise when parameter is wrong type', (done) => {
+    const fsStub = sandbox.stub(fs, 'readFile');
+    const shouldNotBeCalled = sandbox.spy();
+    fetchLocal.fetch(() => {}).then(shouldNotBeCalled, (error) => {
+      assert.equal(error, 'TypeError: Path must be a string. Received [Function]');
+      assert.equal(fsStub.callCount, 0);
+      assert.equal(shouldNotBeCalled.callCount, 0);
+      done();
+    }).catch((e) => done(e));
+  });
 });
