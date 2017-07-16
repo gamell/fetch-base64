@@ -49,14 +49,16 @@ function fetchRemote(includeMimeType, url) {
 }
 
 function auto(includeMimeType, ...paths) {
-  return new Promise((resolve) => {
-    const path = paths[paths.length - 1];
+  const path = paths[paths.length - 1];
+  try {
     if (uriMatcher.isRemote(path)) {
-      resolve(fetchRemote(includeMimeType, paths[0]));
+      return fetchRemote(includeMimeType, paths[0]);
     } else {
-      resolve(fetchLocal(includeMimeType, ...paths));
+      return fetchLocal(includeMimeType, ...paths);
     }
-  });
+  } catch (e) {
+    return Promise.reject(e);
+  }
 }
 
 module.exports = {

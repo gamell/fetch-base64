@@ -25,6 +25,8 @@ function setupSuccessfulResponseMock(sb) {
   httpRequestStub = sb.stub(http, 'request').callsArgWith(1, response).returns(request);
 }
 
+function swallow() {}
+
 describe('fetchRemote', () => {
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
@@ -33,8 +35,11 @@ describe('fetchRemote', () => {
     sandbox.restore();
   });
   it('should always return a promise', () => {
-    assert(typeof fetchRemote.fetch('something').then === 'function');
-    assert(typeof fetchRemote.fetch().then === 'function');
+    const remote1 = fetchRemote.fetch('something');
+    const remote2 = fetchRemote.fetch();
+    assert(typeof remote1.then === 'function');
+    assert(typeof remote2.then === 'function');
+    Promise.all([remote1, remote2]).catch(swallow);
   });
   it('should call url.parse with correct url', (done) => {
     const urlStub = sandbox.stub(url, 'parse', () => ({ prop1: 'value1' }));

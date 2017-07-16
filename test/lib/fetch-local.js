@@ -7,6 +7,8 @@ const fs = require('fs');
 
 let sandbox;
 
+function swallow() {}
+
 describe('fetchLocal', () => {
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
@@ -15,8 +17,11 @@ describe('fetchLocal', () => {
     sandbox.restore();
   });
   it('should always return a promise', () => {
-    assert(typeof fetchLocal.fetch('something').then === 'function');
-    assert(typeof fetchLocal.fetch().then === 'function');
+    const local1 = fetchLocal.fetch('something');
+    const local2 = fetchLocal.fetch();
+    assert(typeof local1.then === 'function');
+    assert(typeof local2.then === 'function');
+    Promise.all([local1, local2]).catch(swallow);
   });
   it('should call fs.readFile with correct path', (done) => {
     const fsStub = sandbox.stub(fs, 'readFile').callsArgWith(1, null, 'gif-data');
