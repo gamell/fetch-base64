@@ -6,7 +6,7 @@ const sinon = require('sinon');
 
 let sandbox;
 
-describe('Uri matcher', () => {
+describe('Uri matcher (Unit)', () => {
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
   });
@@ -40,6 +40,12 @@ describe('Uri matcher', () => {
       assert.isFalse(uriMatcher.isRemote('/local/path/'));
       assert.isFalse(uriMatcher.isRemote('something'));
       assert.isFalse(uriMatcher.isRemote('~/local.jpg'));
+    });
+  });
+  describe('isLocal()', () => {
+    it('should return the opposite of isRemote() for the same path', () => {
+      assert.equal(uriMatcher.isRemote('nonRemote'), !uriMatcher.isLocal('nonRemote'));
+      assert.equal(!uriMatcher.isRemote('http://remote.com'), uriMatcher.isLocal('http://remote.com'));
     });
   });
 });

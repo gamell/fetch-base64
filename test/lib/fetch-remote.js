@@ -27,7 +27,7 @@ function setupSuccessfulResponseMock(sb) {
 
 function swallow() {}
 
-describe('fetchRemote', () => {
+describe('fetchRemote (Unit)', () => {
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
   });
@@ -64,6 +64,28 @@ describe('fetchRemote', () => {
         sinon.match(expectedOptions),
         sinon.match.typeOf('function')
       );
+      done();
+    }).catch((e) => done(e));
+  });
+  it('should call url.resolve if several paths passed', (done) => {
+    setupSuccessfulResponseMock(sandbox);
+    const urlParseStub = sandbox.stub(url, 'parse', () => ({}));
+    const urlResolveStub = sandbox.stub(url, 'resolve', () => 'http://url.com/existing-image.gif');
+    fetchRemote.fetch('http://url.com', '/existing-image.gif').then(() => {
+      assert(urlResolveStub.calledOnce);
+      sinon.assert.calledWith(urlResolveStub, 'http://url.com', '/existing-image.gif');
+      assert(urlParseStub.calledWith('http://url.com/existing-image.gif'));
+      done();
+    }).catch((e) => done(e));
+  });
+  it('should not call url.resolve if only one path passed', (done) => {
+    setupSuccessfulResponseMock(sandbox);
+    const urlParseStub = sandbox.stub(url, 'parse', () => ({}));
+    const urlResolveStub = sandbox.stub(url, 'resolve', () => ({}));
+    fetchRemote.fetch('http://url.com/image.gif').then(() => {
+      assert.equal(urlResolveStub.callCount, 0);
+      assert(urlParseStub.calledOnce);
+      sinon.assert.calledWith(urlParseStub, 'http://url.com/image.gif');
       done();
     }).catch((e) => done(e));
   });

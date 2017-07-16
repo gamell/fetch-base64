@@ -5,57 +5,46 @@ const uriMatcher = require('./lib/uri-matcher.js');
 const remote = require('./lib/fetch-remote.js');
 const local = require('./lib/fetch-local.js');
 
-function getMimeType(path) {
-  try {
-    const mimeType = mime.lookup(path);
-    return (mimeType.indexOf('image') > -1) ? mimeType : false;
-  } catch (e) { // if mimeType returns false
-    return false;
-  }
-}
-
 function checkMimeType(paths) {
   const path = (Array.isArray(paths)) ? paths[paths.length - 1] : paths;
   const promise = new Promise((resolve, reject) => {
-    const mimeType = getMimeType(path);
-    if (!mimeType) {
-      reject('The referenced file is not an image.');
-    } else {
-      resolve(mimeType);
+    try {
+      resolve(mime.lookup(path));
+    } catch (e) {
+      reject(e);
     }
   });
   return promise;
 }
 
-function calculatePrefix(mimeType, includeMimeType) {
-  if (includeMimeType) return `data:${mimeType};base64,`;
-  return '';
+function calculatePrefix(mimeType) {
+  return `data:${mimeType};base64,`;
 }
 
-function fetchLocal(includeMimeType, ...paths) {
+function fetchLocal(...paths) {
   return checkMimeType(paths).then(
-    (mimeType) => calculatePrefix(mimeType, includeMimeType)
+    (mimeType) => calculatePrefix(mimeType)
   ).then(
-    (prefix) => local.fetch(...paths).then((base64) => prefix + base64)
+    (prefix) => local.fetch(...paths).then(
+      (base64) => [base64, prefix + base64]
+    )
   );
 }
 
-function fetchRemote(includeMimeType, url) {
-  return checkMimeType(url).then(
-    (mimeType) => calculatePrefix(mimeType, includeMimeType)
+function fetchRemote(...paths) {
+  return checkMimeType(paths).then(
+    (mimeType) => calculatePrefix(mimeType)
   ).then(
-    (prefix) => remote.fetch(url).then((base64) => prefix + base64)
+    (prefix) => remote.fetch(...paths).then(
+      (base64) => [base64, prefix + base64]
+    )
   );
 }
 
-function auto(includeMimeType, ...paths) {
+function auto(...paths) {
   const path = paths[paths.length - 1];
   try {
-    if (uriMatcher.isRemote(path)) {
-      return fetchRemote(includeMimeType, paths[0]);
-    } else {
-      return fetchLocal(includeMimeType, ...paths);
-    }
+    return (uriMatcher.isRemote(paths[0])) ? fetchRemote(...paths) : fetchLocal(...paths)
   } catch (e) {
     return Promise.reject(e);
   }
@@ -66,5 +55,5 @@ module.exports = {
   remote: fetchRemote,
   auto,
   isRemote: uriMatcher.isRemote,
-  isLocal: () => !uriMatcher.isRemote(),
+  isLocal: uriMatcher.isLocal,
 };
