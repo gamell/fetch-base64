@@ -27,12 +27,6 @@ describe('index.js (Unit)', () => {
       assert(typeof auto2.then === 'function');
       Promise.all([auto1, auto2]).catch(swallow);
     });
-    it('it should return a rejected promise when mime type is not an image', (done) => {
-      index.auto('/non-existant-path/non-image.txt').catch((e) => {
-        assert.equal(e, 'The referenced file is not an image.');
-        done();
-      });
-    });
     it('it should call local.fetch() to fetch local images', (done) => {
       const fetchLocalStub = sandbox.stub(local, 'fetch').callsFake(() => Promise.resolve('image-data'));
       const shouldNotBeCalled = sandbox.spy(remote, 'fetch');
@@ -65,7 +59,7 @@ describe('index.js (Unit)', () => {
       }).catch((e) => done(e));
     });
     it('it should call fetch.remote if first path passed is remote', (done) => {
-      const fetchRemoteStub = sandbox.stub(remote, 'fetch', () => Promise.resolve('image-data'));
+      const fetchRemoteStub = sandbox.stub(remote, 'fetch').callsFake(() => Promise.resolve('image-data'));
       const shouldNotBeCalled = sandbox.spy(local, 'fetch');
       index.auto('http://thisisremote.com/', '/paths/', '/image.gif').then((data) => {
         assert.equal(data[0], 'image-data');
@@ -76,7 +70,7 @@ describe('index.js (Unit)', () => {
       }).catch((e) => done(e));
     });
     it('it should call fetch.local if first path passed is local', (done) => {
-      const fetchLocalStub = sandbox.stub(local, 'fetch', () => Promise.resolve('image-data'));
+      const fetchLocalStub = sandbox.stub(local, 'fetch').callsFake(() => Promise.resolve('image-data'));
       const shouldNotBeCalled = sandbox.spy(remote, 'fetch');
       index.auto('/localPath/', '/paths/', '/image.gif').then((data) => {
         assert.equal(data[0], 'image-data');
