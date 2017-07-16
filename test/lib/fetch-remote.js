@@ -42,7 +42,7 @@ describe('fetchRemote', () => {
     Promise.all([remote1, remote2]).catch(swallow);
   });
   it('should call url.parse with correct url', (done) => {
-    const urlStub = sandbox.stub(url, 'parse', () => ({ prop1: 'value1' }));
+    const urlStub = sandbox.stub(url, 'parse').callsFake(() => ({ prop1: 'value1' }));
     // setup http.requests stubs
     setupSuccessfulResponseMock(sandbox);
     fetchRemote.fetch('http://url.com/existing-image.gif').then(() => {
@@ -53,7 +53,7 @@ describe('fetchRemote', () => {
   });
   it('should call http.request with correct url and options', (done) => {
     setupSuccessfulResponseMock(sandbox);
-    sandbox.stub(url, 'parse', () => ({}));
+    sandbox.stub(url, 'parse').callsFake(() => ({}));
     fetchRemote.fetch('http://url.com/existing-image.gif').then(() => {
       const expectedOptions = {
         headers: {},
@@ -70,7 +70,7 @@ describe('fetchRemote', () => {
   describe('http.request', () => {
     it('should return with expected error', (done) => {
       setupReqRes(200);
-      sandbox.stub(url, 'parse', () => ({}));
+      sandbox.stub(url, 'parse').callsFake(() => ({}));
       const shouldNotBeCalled = sinon.spy();
       fetchRemote.fetch('http://127.0.0.1/existing-image.gif').then(shouldNotBeCalled, (error) => {
         assert.equal(error, 'HTTP Request error: Error: connect ECONNREFUSED 127.0.0.1:80');
