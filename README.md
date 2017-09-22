@@ -11,7 +11,7 @@ If you find a bug please report it [here](https://github.com/gamell/fetch-base64
 # Usage
 
 ```js
-const fetch = require(fetch-base64);
+const fetch = require('fetch-base64');
 
 fetch.local('/path/to/image.jpg').then((data) => {
   // data[0] contains the raw base64-encoded jpg
@@ -131,7 +131,7 @@ doFetchRemote.then((data) => {
 
 ```js
 const doFetchRemote2 = fetch.remote('https://somedomain.com', '/image.jpg');
-doFetchRemote.then((data) => {
+doFetchRemote2.then((data) => {
   console.log(`base64 image with mimeType: ${data[1]}`);
 }, (reason) => {
   console.log(`Fetch Failed: ${reason}`)
@@ -142,7 +142,7 @@ doFetchRemote.then((data) => {
 
 ```js
 const doFetchAuto = fetch.auto('https://somedomain.com/image.jpg');
-doFetch.then((data) => {
+doFetchAuto.then((data) => {
   console.log(`base64 image: ${data[0]}`);
 }, (reason) => {
   console.log(`Fetch Failed: ${reason}`)
@@ -151,7 +151,7 @@ doFetch.then((data) => {
 
 ```js
 const doFetchAuto2 = fetch.auto('/some/local/', '/path/', './image.jpg');
-doFetch.then((data) => {
+doFetchAuto2.then((data) => {
   console.log(`base64 image: ${data[0]}`);
 }, (reason) => {
   console.log(`Fetch Failed: ${reason}`)
