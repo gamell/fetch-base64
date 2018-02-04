@@ -4,7 +4,9 @@ const assert = require('chai').assert;
 const sinon = require('sinon');
 const mime = require('mime-types');
 
-describe('Functional test', () => {
+describe('Functional test', function() {
+  this.timeout(5000);
+
   describe('local()', () => {
     it('should fetch file with simple path', (done) => {
       fetch.local('./test/functional/example.svg').then((data) => {
