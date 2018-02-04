@@ -36,7 +36,7 @@ describe('index.js (Unit)', () => {
         sinon.assert.calledWith(fetchLocalStub, '/several/', '/paths/', '/image.gif');
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
-      }).catch((e) => done(e));
+      }).catch(e => done(e));
     });
     it('it should call remote.fetch() to fetch remote images', (done) => {
       const fetchRemoteStub = sandbox.stub(remote, 'fetch').callsFake(() => Promise.resolve('image-data'));
@@ -44,10 +44,10 @@ describe('index.js (Unit)', () => {
       index.auto('http://remote.com/image.jpg').then((data) => {
         assert.deepEqual(data, ['image-data', 'data:image/jpeg;base64,image-data']);
         sinon.assert.calledOnce(fetchRemoteStub);
-        sinon.assert.calledWith(fetchRemoteStub, 'http://remote.com/image.jpg');
+        sinon.assert.calledWith(fetchRemoteStub, { paths: ['http://remote.com/image.jpg'], headers: {} });
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
-      }).catch((e) => done(e));
+      }).catch(e => done(e));
     });
     it('it should return a rejected promise if there is an exception parsing the mimeType', (done) => {
       const shouldNotBeCalled = sandbox.spy(remote, 'fetch');
@@ -56,7 +56,7 @@ describe('index.js (Unit)', () => {
         assert.equal(shouldNotBeCalled.callCount, 0);
         assert.equal(e, 'SomeError');
         done();
-      }).catch((e) => done(e));
+      }).catch(e => done(e));
     });
     it('it should call fetch.remote if first path passed is remote', (done) => {
       const fetchRemoteStub = sandbox.stub(remote, 'fetch').callsFake(() => Promise.resolve('image-data'));
@@ -64,10 +64,10 @@ describe('index.js (Unit)', () => {
       index.auto('http://thisisremote.com/', '/paths/', '/image.gif').then((data) => {
         assert.equal(data[0], 'image-data');
         sinon.assert.calledOnce(fetchRemoteStub);
-        sinon.assert.calledWith(fetchRemoteStub, 'http://thisisremote.com/', '/paths/', '/image.gif');
+        sinon.assert.calledWith(fetchRemoteStub, { paths: ['http://thisisremote.com/', '/paths/', '/image.gif'], headers: {} });
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
-      }).catch((e) => done(e));
+      }).catch(e => done(e));
     });
     it('it should call fetch.local if first path passed is local', (done) => {
       const fetchLocalStub = sandbox.stub(local, 'fetch').callsFake(() => Promise.resolve('image-data'));
@@ -78,7 +78,7 @@ describe('index.js (Unit)', () => {
         sinon.assert.calledWith(fetchLocalStub, '/localPath/', '/paths/', '/image.gif');
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
-      }).catch((e) => done(e));
+      }).catch(e => done(e));
     });
   });
   describe('local()', () => {
@@ -96,7 +96,7 @@ describe('index.js (Unit)', () => {
         assert.equal(res, 'error getting image');
         assert(localFecthStub.calledOnce);
         done();
-      }).catch((e) => done(e));
+      }).catch(e => done(e));
     });
     it('should call local.fetch() for local files', (done) => {
       const localFetchStub = sandbox.stub(local, 'fetch').callsFake(() => Promise.resolve('gif-data'));
@@ -106,7 +106,7 @@ describe('index.js (Unit)', () => {
         assert(localFetchStub.calledOnce);
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
-      }).catch((e) => done(e));
+      }).catch(e => done(e));
     });
     it('should handle multiple paths correctly', (done) => {
       const localFetchStub = sandbox.stub(local, 'fetch').callsFake(() => Promise.resolve('gif-data'));
@@ -121,7 +121,7 @@ describe('index.js (Unit)', () => {
         );
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
-      }).catch((e) => done(e));
+      }).catch(e => done(e));
     });
   });
   describe('remote()', () => {
@@ -138,7 +138,7 @@ describe('index.js (Unit)', () => {
         assert.equal(reason, 'error getting image');
         assert(remoteFecthStub.calledOnce);
         done();
-      }).catch((e) => done(e));
+      }).catch(e => done(e));
     });
     it('should call remote.fetch() for remote files', (done) => {
       const remoteFecthStub = sandbox.stub(remote, 'fetch').callsFake(() => Promise.resolve('gif-data'));
@@ -148,7 +148,7 @@ describe('index.js (Unit)', () => {
         assert(remoteFecthStub.calledOnce);
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
-      }).catch((e) => done(e));
+      }).catch(e => done(e));
     });
   });
 });

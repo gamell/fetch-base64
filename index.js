@@ -3,6 +3,9 @@ const uriMatcher = require('./lib/uri-matcher.js');
 const remote = require('./lib/fetch-remote.js');
 const local = require('./lib/fetch-local.js');
 
+let api = {};
+let headers = {};
+
 function checkMimeType(paths) {
   const path = (Array.isArray(paths)) ? paths[paths.length - 1] : paths;
   const promise = new Promise((resolve, reject) => {
@@ -20,11 +23,15 @@ function calculatePrefix(mimeType) {
 }
 
 function fetchLocal(...paths) {
-  return checkMimeType(paths).then(mimeType => calculatePrefix(mimeType)).then(prefix => local.fetch(...paths).then(base64 => [base64, prefix + base64]));
+  return checkMimeType(paths)
+    .then(mimeType => calculatePrefix(mimeType))
+    .then(prefix => local.fetch(...paths).then(base64 => [base64, prefix + base64]));
 }
 
 function fetchRemote(...paths) {
-  return checkMimeType(paths).then(mimeType => calculatePrefix(mimeType)).then(prefix => remote.fetch(...paths).then(base64 => [base64, prefix + base64]));
+  return checkMimeType(paths)
+    .then(mimeType => calculatePrefix(mimeType))
+    .then(prefix => remote.fetch({ paths, headers }).then(base64 => [base64, prefix + base64]));
 }
 
 function auto(...paths) {
@@ -35,23 +42,20 @@ function auto(...paths) {
   }
 }
 
-function setHeaders(headers) {
-
+function setHeaders(headersParam) {
+  headers = headersParam;
+  return api;
 }
 
-const api = {
+api = {
   local: fetchLocal,
   remote: fetchRemote,
   auto,
   isRemote: uriMatcher.isRemote,
   isLocal: uriMatcher.isLocal,
-};
-
-const modifiers = {
-  setHeaders,
+  setHeaders
 };
 
 module.exports = {
   ...api,
-  ...modifiers,
 };
