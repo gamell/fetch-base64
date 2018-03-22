@@ -143,8 +143,19 @@ describe('index.js (Unit)', () => {
     it('should call remote.fetch() for remote files', (done) => {
       const remoteFecthStub = sandbox.stub(remote, 'fetch').callsFake(() => Promise.resolve('gif-data'));
       const shouldNotBeCalled = sandbox.spy(local, 'fetch');
-      index.remote('https://deomain.com/to/existing-image.gif').then((res) => {
+      index.remote('https://domain.com/to/existing-image.gif').then((res) => {
         assert.deepEqual(res, ['gif-data', 'data:image/gif;base64,gif-data']);
+        assert(remoteFecthStub.calledOnce);
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch(e => done(e));
+    });
+    it('should allow users to pass in custom headers', (done) => {
+      const remoteFecthStub = sandbox.stub(remote, 'fetch').callsFake(() => Promise.resolve('gif-data'));
+      const shouldNotBeCalled = sandbox.spy(local, 'fetch');
+      index.setHeaders({ test: true });
+      index.remote('https://domain.com/to/existing-image.gif').then(() => {
+        sinon.assert.calledWith(remoteFecthStub, { paths: ['https://domain.com/to/existing-image.gif'], headers: { test: true } });
         assert(remoteFecthStub.calledOnce);
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
