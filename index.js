@@ -6,8 +6,7 @@ const local = require('./lib/fetch-local.js');
 let api = {};
 let headers = {};
 
-function checkMimeType(paths) {
-  const path = (Array.isArray(paths)) ? paths[paths.length - 1] : paths;
+function checkMimeType(path) {
   const promise = new Promise((resolve, reject) => {
     try {
       resolve(mime.lookup(path));
@@ -22,21 +21,21 @@ function calculatePrefix(mimeType) {
   return `data:${mimeType};base64,`;
 }
 
-function fetchLocal(...paths) {
-  return checkMimeType(paths)
+function fetchLocal(path) {
+  return checkMimeType(path)
     .then(mimeType => calculatePrefix(mimeType))
-    .then(prefix => local.fetch(...paths).then(base64 => [base64, prefix + base64]));
+    .then(prefix => local.fetch(path).then(base64 => [base64, prefix + base64]))
 }
 
-function fetchRemote(...paths) {
-  return checkMimeType(paths)
+function fetchRemote(path, headers) {
+  return checkMimeType(path)
     .then(mimeType => calculatePrefix(mimeType))
-    .then(prefix => remote.fetch({ paths, headers }).then(base64 => [base64, prefix + base64]));
+    .then(prefix => remote.fetch(path, headers).then(base64 => [base64, prefix + base64]))
 }
 
-function auto(...paths) {
+function auto(path, headers) {
   try {
-    return (uriMatcher.isRemote(paths[0])) ? fetchRemote(...paths) : fetchLocal(...paths);
+    return (uriMatcher.isRemote(path)) ? fetchRemote(path, headers) : fetchLocal(path);
   } catch (e) {
     return Promise.reject(e);
   }
