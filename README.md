@@ -73,6 +73,16 @@ User Agent is spoofed to be same as Chrome's to avoid some restrictions, but fet
 
 See [`url.resolve()`](https://nodejs.org/api/url.html#url_url_resolve_from_to) for more information and examples.
 
+## `fetch.remote(options)`
+
+Advanced version of the `fetch.remote` where you can pass an `options` object containing:
+
+- `paths` `<[string]>`: Array with 2 Strings representing `from` and `to` (see above).
+- `url` `<string>`: The url to fetch. If both `paths` and `url` are passed, `paths` takes priority.
+- `headers` `<object>`: Object containing key-value pairs with the desired HTTP Headers you want to attach to the fetch request.
+
+User Agent will still be spoofed to be same as Chrome.
+
 ## `fetch.auto(...mixed)`
 
 This function will do the *best effort* to automatically detect the kind of path passed (`remote` or `local`) and invoke the correspondent function.
