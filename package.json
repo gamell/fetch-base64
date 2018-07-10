@@ -4,9 +4,7 @@
   "description": "A node package to retrieve fetch local or remote files in base64 encoding.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --recursive ./test",
-    "publish-please": "publish-please",
-    "prepublishOnly": "publish-please guard"
+    "test": "mocha --recursive ./test"
   },
   "repository": {
     "type": "git",
