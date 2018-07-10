@@ -11,7 +11,7 @@ function swallow() {}
 
 describe('fetchLocal (Unit)', () => {
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
   });
   afterEach(() => {
     sandbox.restore();
@@ -30,7 +30,7 @@ describe('fetchLocal (Unit)', () => {
       assert(fsStub.calledOnce);
       assert(fsStub.calledWith('/path/to/existing-image.gif'));
       done();
-    }).catch((e) => done(e));
+    }).catch(e => done(e));
   });
   it('should return a rejected promise when there is a fs error', (done) => {
     const fsStub = sandbox.stub(fs, 'readFile').callsArgWith(1, 'error message', null);
@@ -41,16 +41,16 @@ describe('fetchLocal (Unit)', () => {
       assert.equal(shouldNotBeCalled.callCount, 0);
       assert(fsStub.calledWith('/path/to/existing-image.gif'));
       done();
-    }).catch((e) => done(e));
+    }).catch(e => done(e));
   });
   it('should return a rejected promise when parameter is wrong type', (done) => {
     const fsStub = sandbox.stub(fs, 'readFile');
     const shouldNotBeCalled = sandbox.spy();
     fetchLocal.fetch(() => {}).then(shouldNotBeCalled, (error) => {
-      assert.equal(error, 'TypeError: Path must be a string. Received [Function]');
+      assert.equal('TypeError: Path must be a string. Received [Function]', error);
       assert.equal(fsStub.callCount, 0);
       assert.equal(shouldNotBeCalled.callCount, 0);
       done();
-    }).catch((e) => done(e));
+    }).catch(e => done(e));
   });
 });
