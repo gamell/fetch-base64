@@ -148,6 +148,15 @@ doFetchRemote2.then((data) => {
 });
 ```
 
+```js
+const doFetchRemote = fetch.remote({ url: 'https://somedomain.com/image.jpg', headers: { 'custom-header': 'foo' } });
+doFetchRemote.then((data) => {
+  console.log(`base64 image with mimeType: ${data[1]}`);
+}, (reason) => {
+  console.log(`Fetch Failed: ${reason}`)
+});
+```
+
 ## Auto
 
 ```js
