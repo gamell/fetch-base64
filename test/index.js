@@ -13,7 +13,7 @@ function swallow() {}
 
 describe('index.js (Unit)', () => {
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
   });
   afterEach(() => {
     sandbox.restore();
