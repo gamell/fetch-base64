@@ -11,7 +11,7 @@ function swallow() {}
 
 describe('fetchLocal (Unit)', () => {
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
   });
   afterEach(() => {
     sandbox.restore();
@@ -47,7 +47,7 @@ describe('fetchLocal (Unit)', () => {
     const fsStub = sandbox.stub(fs, 'readFile');
     const shouldNotBeCalled = sandbox.spy();
     fetchLocal.fetch(() => {}).then(shouldNotBeCalled, (error) => {
-      assert.equal('TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received type function', error);
+      assert.equal('TypeError: Path must be a string. Received [Function]', error);
       assert.equal(fsStub.callCount, 0);
       assert.equal(shouldNotBeCalled.callCount, 0);
       done();

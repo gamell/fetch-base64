@@ -8,7 +8,7 @@ let sandbox;
 
 describe('Uri matcher (Unit)', () => {
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
   });
   afterEach(() => {
     sandbox.restore();
