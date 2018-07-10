@@ -44,7 +44,7 @@ describe('index.js (Unit)', () => {
       index.auto('http://remote.com/image.jpg').then((data) => {
         assert.deepEqual(data, ['image-data', 'data:image/jpeg;base64,image-data']);
         sinon.assert.calledOnce(fetchRemoteStub);
-        sinon.assert.calledWith(fetchRemoteStub, { paths: ['http://remote.com/image.jpg'] });
+        sinon.assert.calledWith(fetchRemoteStub, { headers: {}, paths: ['http://remote.com/image.jpg'] });
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
       }).catch(e => done(e));
@@ -64,7 +64,7 @@ describe('index.js (Unit)', () => {
       index.auto('http://thisisremote.com/', '/paths/', '/image.gif').then((data) => {
         assert.equal(data[0], 'image-data');
         sinon.assert.calledOnce(fetchRemoteStub);
-        sinon.assert.calledWith(fetchRemoteStub, { paths: ['http://thisisremote.com/', '/paths/', '/image.gif'] });
+        sinon.assert.calledWith(fetchRemoteStub, { headers: {}, paths: ['http://thisisremote.com/', '/paths/', '/image.gif'] });
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
       }).catch(e => done(e));
@@ -198,6 +198,18 @@ describe('index.js (Unit)', () => {
         assert.deepEqual(res, ['gif-data', 'data:image/gif;base64,gif-data']);
         assert(remoteFecthStub.calledOnce);
         assert(remoteFecthStub.calledWith({ paths, headers }));
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch(e => done(e));
+    });
+    it('should properly treat an array of paths passed as parameter', (done) => {
+      const remoteFecthStub = sandbox.stub(remote, 'fetch').callsFake(() => Promise.resolve('gif-data'));
+      const shouldNotBeCalled = sandbox.spy(local, 'fetch');
+      const paths = ['https://domain.com', '/to/existing-image.gif'];
+      index.remote(...paths).then((res) => {
+        assert.deepEqual(res, ['gif-data', 'data:image/gif;base64,gif-data']);
+        assert(remoteFecthStub.calledOnce);
+        assert(remoteFecthStub.calledWith({ paths, headers: {} }));
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
       }).catch(e => done(e));

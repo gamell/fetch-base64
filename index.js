@@ -25,25 +25,21 @@ function fetchLocal(...paths) {
     .then(prefix => local.fetch(...paths).then(base64 => [base64, prefix + base64]));
 }
 
-function fetchRemoteVanilla(...paths) {
-  return checkMimeType(paths)
-    .then(mimeType => calculatePrefix(mimeType))
-    .then(prefix => remote.fetch({ paths }).then(base64 => [base64, prefix + base64]));
-}
-
-function fetchRemoteWithOptions({ url, paths = [], headers = {} }) {
-  const ps = (paths.length === 0) ? [url] : paths;
-  return checkMimeType(ps)
-    .then(mimeType => calculatePrefix(mimeType))
-    .then(prefix => remote.fetch({ paths: ps, headers }).then(base64 => [base64, prefix + base64]));
-}
+const remoteOptions = (...params) => {
+  const isOptionObject = params.length === 1 && typeof params[0] === 'object';
+  const getPaths = p => ((p.paths) ? p.paths : [p.url]);
+  const getHeaders = p => ((p.headers) ? p.headers : {});
+  return {
+    paths: isOptionObject ? getPaths(params[0]) : params,
+    headers: isOptionObject ? getHeaders(params[0]) : {}
+  };
+};
 
 function fetchRemote(...params) {
-  if (params.length === 1 && typeof params[0] === 'object') {
-    return fetchRemoteWithOptions(params[0]);
-  }
-  // plain vanilla function to keep compatibility without tests
-  return fetchRemoteVanilla(...params);
+  const options = remoteOptions(...params);
+  return checkMimeType(options.paths)
+    .then(mimeType => calculatePrefix(mimeType))
+    .then(prefix => remote.fetch(options).then(base64 => [base64, prefix + base64]));
 }
 
 function auto(...paths) {
