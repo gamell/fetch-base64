@@ -12,7 +12,7 @@ describe('Header tests', () => {
   before(() => server.start(SERVER_PORT));
   after(server.stop);
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
   });
   afterEach(() => {
     sandbox.restore();
