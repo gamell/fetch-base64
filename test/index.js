@@ -44,7 +44,7 @@ describe('index.js (Unit)', () => {
       index.auto('http://remote.com/image.jpg').then((data) => {
         assert.deepEqual(data, ['image-data', 'data:image/jpeg;base64,image-data']);
         sinon.assert.calledOnce(fetchRemoteStub);
-        sinon.assert.calledWith(fetchRemoteStub, { paths: ['http://remote.com/image.jpg'], headers: {} });
+        sinon.assert.calledWith(fetchRemoteStub, { paths: ['http://remote.com/image.jpg'] });
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
       }).catch(e => done(e));
@@ -64,7 +64,7 @@ describe('index.js (Unit)', () => {
       index.auto('http://thisisremote.com/', '/paths/', '/image.gif').then((data) => {
         assert.equal(data[0], 'image-data');
         sinon.assert.calledOnce(fetchRemoteStub);
-        sinon.assert.calledWith(fetchRemoteStub, { paths: ['http://thisisremote.com/', '/paths/', '/image.gif'], headers: {} });
+        sinon.assert.calledWith(fetchRemoteStub, { paths: ['http://thisisremote.com/', '/paths/', '/image.gif'] });
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
       }).catch(e => done(e));
@@ -150,13 +150,54 @@ describe('index.js (Unit)', () => {
         done();
       }).catch(e => done(e));
     });
-    it('should allow users to pass in custom headers', (done) => {
+    it('should accept an options object as paramenter with the `url` property', (done) => {
       const remoteFecthStub = sandbox.stub(remote, 'fetch').callsFake(() => Promise.resolve('gif-data'));
       const shouldNotBeCalled = sandbox.spy(local, 'fetch');
-      index.setHeaders({ test: true });
-      index.remote('https://domain.com/to/existing-image.gif').then(() => {
-        sinon.assert.calledWith(remoteFecthStub, { paths: ['https://domain.com/to/existing-image.gif'], headers: { test: true } });
+      const url = 'https://domain.com/to/existing-image.gif';
+      index.remote({ url }).then((res) => {
+        assert.deepEqual(res, ['gif-data', 'data:image/gif;base64,gif-data']);
         assert(remoteFecthStub.calledOnce);
+        assert(remoteFecthStub.calledWith({ paths: [url], headers: {} }));
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch(e => done(e));
+    });
+    it('should accept an options object as paramenter with the `url` and `headers` properties', (done) => {
+      const remoteFecthStub = sandbox.stub(remote, 'fetch').callsFake(() => Promise.resolve('gif-data'));
+      const shouldNotBeCalled = sandbox.spy(local, 'fetch');
+      const url = 'https://domain.com/to/existing-image.gif';
+      const headers = { test: 'foo' };
+      index.remote({ url, headers }).then((res) => {
+        assert.deepEqual(res, ['gif-data', 'data:image/gif;base64,gif-data']);
+        assert(remoteFecthStub.calledOnce);
+        assert(remoteFecthStub.calledWith({ paths: [url], headers }));
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch(e => done(e));
+    });
+    it('should accept an options object as paramenter with the `paths` and `headers` properties', (done) => {
+      const remoteFecthStub = sandbox.stub(remote, 'fetch').callsFake(() => Promise.resolve('gif-data'));
+      const shouldNotBeCalled = sandbox.spy(local, 'fetch');
+      const paths = ['https://domain.com', '/to/existing-image.gif'];
+      const headers = { test: 'foo' };
+      index.remote({ paths, headers }).then((res) => {
+        assert.deepEqual(res, ['gif-data', 'data:image/gif;base64,gif-data']);
+        assert(remoteFecthStub.calledOnce);
+        assert(remoteFecthStub.calledWith({ paths, headers }));
+        assert.equal(shouldNotBeCalled.callCount, 0);
+        done();
+      }).catch(e => done(e));
+    });
+    it('should prioritize `paths` in case both `paths` and `url` are passed', (done) => {
+      const remoteFecthStub = sandbox.stub(remote, 'fetch').callsFake(() => Promise.resolve('gif-data'));
+      const shouldNotBeCalled = sandbox.spy(local, 'fetch');
+      const paths = ['https://domain.com', '/to/existing-image.gif'];
+      const url = 'http://test-url.com';
+      const headers = { test: 'foo' };
+      index.remote({ url, paths, headers }).then((res) => {
+        assert.deepEqual(res, ['gif-data', 'data:image/gif;base64,gif-data']);
+        assert(remoteFecthStub.calledOnce);
+        assert(remoteFecthStub.calledWith({ paths, headers }));
         assert.equal(shouldNotBeCalled.callCount, 0);
         done();
       }).catch(e => done(e));
